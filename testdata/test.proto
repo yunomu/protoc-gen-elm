@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package test;
+
+option go_package = "./test";
+
+message User {
+  string user_id = 1;
+  string user_name = 2;
+  int32 age = 3;
+}
+
+message UserList {
+  repeated User users = 1;
+}
