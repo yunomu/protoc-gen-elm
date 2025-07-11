@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/yunomu/protoc-gen-elm/generate"
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
@@ -10,7 +11,7 @@ func main() {
 			if !f.Generate {
 				continue
 			}
-			generateFile(gen, f)
+			generate.GenerateFile(gen, f)
 		}
 		return nil
 	})

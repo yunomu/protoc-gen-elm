@@ -1,4 +1,4 @@
-package main
+package generate
 
 import (
 	"strings"
@@ -25,7 +25,7 @@ func upperCamelCase(s string) string {
 	return strings.Join(parts, "")
 }
 
-func generateFile(gen *protogen.Plugin, file *protogen.File) *protogen.GeneratedFile {
+func GenerateFile(gen *protogen.Plugin, file *protogen.File) *protogen.GeneratedFile {
 	pathParts := strings.Split(file.GeneratedFilenamePrefix, "/")
 	for i, part := range pathParts {
 		pathParts[i] = upperCamelCase(part)
