@@ -26,7 +26,10 @@ func upperCamelCase(s string) string {
 }
 
 func GenerateFile(gen *protogen.Plugin, file *protogen.File) *protogen.GeneratedFile {
-	pathParts := strings.Split(file.GeneratedFilenamePrefix, "/")
+	protoPath := file.Desc.Path()
+	path := strings.TrimSuffix(protoPath, ".proto")
+
+	pathParts := strings.Split(path, "/")
 	for i, part := range pathParts {
 		pathParts[i] = upperCamelCase(part)
 	}

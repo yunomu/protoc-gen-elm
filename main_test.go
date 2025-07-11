@@ -36,7 +36,7 @@ func TestGolden(t *testing.T) {
 	}
 
 	// Compare the generated file with the golden file
-	generatedFile := filepath.Join(tempDir, "Test/Test.elm")
+	generatedFile := filepath.Join(tempDir, "Test.elm")
 	goldenFile := "testdata/Test.elm.golden"
 
 	generatedBytes, err := os.ReadFile(generatedFile)
