@@ -24,10 +24,9 @@ userDecoder =
 userEncoder : User -> Encode.Value
 userEncoder user =
     Encode.object
-        [ 
-            ("userId", Encode.string user.userId),
-            ("userName", Encode.string user.userName),
-            ("age", Encode.int user.age)
+        [ ("userId", Encode.string user.userId)
+        , ("userName", Encode.string user.userName)
+        , ("age", Encode.int user.age)
         ]
 
 type alias UserList =
@@ -42,7 +41,6 @@ userListDecoder =
 userListEncoder : UserList -> Encode.Value
 userListEncoder userList =
     Encode.object
-        [ 
-            ("users", (Encode.list userEncoder userList.users))
+        [ ("users", (Encode.list userEncoder userList.users))
         ]
 

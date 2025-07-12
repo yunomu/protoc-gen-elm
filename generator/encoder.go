@@ -47,9 +47,9 @@ func (g *Generator) genEncoder(f *protogen.GeneratedFile, msg *protogen.Message)
 	f.P(encoderName, " : ", messageName, " -> Encode.Value")
 	f.P(encoderName, " ", instanceName, " =")
 	f.P("    Encode.object")
-	f.P("        [ ")
 
-	for i, field := range msg.Fields {
+	separator := "["
+	for _, field := range msg.Fields {
 		fieldName := camelCase(string(field.Desc.Name()))
 		jsonName := field.Desc.JSONName()
 		fieldEncoder, err := elmEncoder(field, instanceName+"."+fieldName)
@@ -58,11 +58,8 @@ func (g *Generator) genEncoder(f *protogen.GeneratedFile, msg *protogen.Message)
 			return
 		}
 
-		separator := ","
-		if i == len(msg.Fields)-1 {
-			separator = ""
-		}
-		f.P("            (\"", jsonName, "\", ", fieldEncoder, ")", separator)
+		f.P("        ", separator, " (\"", jsonName, "\", ", fieldEncoder, ")")
+		separator = ","
 	}
 
 	f.P("        ]")
