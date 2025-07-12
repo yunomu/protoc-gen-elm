@@ -9,10 +9,9 @@ import Json.Decode as Decode
 import Json.Encode as Encode
 
 type alias User =
-    { 
-    userId : String,
-    userName : String,
-    age : Int
+    { userId : String
+    , userName : String
+    , age : Int
     }
 
 userDecoder : Decode.Decoder User
@@ -32,8 +31,7 @@ userEncoder user =
         ]
 
 type alias UserList =
-    { 
-    users : (List User)
+    { users : (List User)
     }
 
 userListDecoder : Decode.Decoder UserList

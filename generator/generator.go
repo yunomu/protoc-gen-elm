@@ -96,9 +96,9 @@ func elmType(field *protogen.Field) (string, error) {
 func (g *Generator) genMessage(f *protogen.GeneratedFile, msg *protogen.Message) {
 	messageName := msg.GoIdent.GoName
 	f.P("type alias ", messageName, " =")
-	f.P("    { ")
 
-	for i, field := range msg.Fields {
+	separator := "{"
+	for _, field := range msg.Fields {
 		fieldName := camelCase(string(field.Desc.Name()))
 		fieldType, err := elmType(field)
 		if err != nil {
@@ -106,11 +106,8 @@ func (g *Generator) genMessage(f *protogen.GeneratedFile, msg *protogen.Message)
 			return
 		}
 
-		separator := ","
-		if i == len(msg.Fields)-1 {
-			separator = ""
-		}
-		f.P("    ", fieldName, " : ", fieldType, separator)
+		f.P("    ", separator, " ", fieldName, " : ", fieldType)
+		separator = ","
 	}
 	f.P("    }")
 	f.P("")
