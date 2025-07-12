@@ -6,7 +6,6 @@
 module Test exposing (..)
 
 import Json.Decode as Decode
-import Json.Decode.Pipeline as Pipeline
 import Json.Encode as Encode
 
 type alias User =
@@ -18,10 +17,10 @@ type alias User =
 
 userDecoder : Decode.Decoder User
 userDecoder =
-    Pipeline.decode User
-        |> Pipeline.required "userId" Decode.string
-        |> Pipeline.required "userName" Decode.string
-        |> Pipeline.required "age" Decode.int
+    Decode.map3 User
+        (Decode.field "userId" Decode.string)
+        (Decode.field "userName" Decode.string)
+        (Decode.field "age" Decode.int)
 
 userEncoder : User -> Encode.Value
 userEncoder user =
@@ -39,8 +38,8 @@ type alias UserList =
 
 userListDecoder : Decode.Decoder UserList
 userListDecoder =
-    Pipeline.decode UserList
-        |> Pipeline.required "users" (Decode.list userDecoder)
+    Decode.map UserList
+        (Decode.field "users" (Decode.list userDecoder))
 
 userListEncoder : UserList -> Encode.Value
 userListEncoder userList =

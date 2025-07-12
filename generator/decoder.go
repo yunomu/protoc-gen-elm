@@ -38,7 +38,19 @@ func (g *Generator) genDecoder(f *protogen.GeneratedFile, msg *protogen.Message)
 
 	f.P(decoderName, " : Decode.Decoder ", messageName)
 	f.P(decoderName, " =")
-	f.P("    Pipeline.decode ", messageName)
+
+	fieldsNum := len(msg.Fields)
+	switch {
+	case fieldsNum > 8:
+		g.gen.Error(fmt.Errorf("Maximum number of fields supported is 8"))
+		return
+	case fieldsNum == 0:
+		panic("not reached: number of fields is not zero")
+	case fieldsNum == 1:
+		f.P("    Decode.map ", messageName)
+	default:
+		f.P("    Decode.map", fieldsNum, " ", messageName)
+	}
 
 	for _, field := range msg.Fields {
 		jsonName := field.Desc.JSONName()
@@ -47,7 +59,7 @@ func (g *Generator) genDecoder(f *protogen.GeneratedFile, msg *protogen.Message)
 			g.gen.Error(err)
 			return
 		}
-		f.P("        |> Pipeline.required \"", jsonName, "\" ", fieldDecoder)
+		f.P("        (Decode.field \"", jsonName, "\" ", fieldDecoder, ")")
 	}
 	f.P("")
 }

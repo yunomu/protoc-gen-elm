@@ -58,7 +58,6 @@ func (g *Generator) GenerateFile(file *protogen.File) *protogen.GeneratedFile {
 	f.P("module ", moduleName, " exposing (..)")
 	f.P("")
 	f.P("import Json.Decode as Decode")
-	f.P("import Json.Decode.Pipeline as Pipeline")
 	f.P("import Json.Encode as Encode")
 	f.P("")
 
