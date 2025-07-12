@@ -71,79 +71,6 @@ func (g *Generator) GenerateFile(file *protogen.File) *protogen.GeneratedFile {
 	return f
 }
 
-func (g *Generator) genMessage(f *protogen.GeneratedFile, msg *protogen.Message) {
-	messageName := msg.GoIdent.GoName
-	f.P("type alias ", messageName, " =")
-	f.P("    { ")
-
-	for i, field := range msg.Fields {
-		fieldName := camelCase(string(field.Desc.Name()))
-		fieldType, err := elmType(field)
-		if err != nil {
-			g.gen.Error(err)
-			return
-		}
-
-		separator := ","
-		if i == len(msg.Fields)-1 {
-			separator = ""
-		}
-		f.P("    ", fieldName, " : ", fieldType, separator)
-	}
-	f.P("    }")
-	f.P("")
-}
-
-func (g *Generator) genDecoder(f *protogen.GeneratedFile, msg *protogen.Message) {
-	messageName := msg.GoIdent.GoName
-	decoderName := strings.ToLower(messageName[:1]) + messageName[1:] + "Decoder"
-
-	f.P(decoderName, " : Decode.Decoder ", messageName)
-	f.P(decoderName, " =")
-	f.P("    Pipeline.decode ", messageName)
-
-	for _, field := range msg.Fields {
-		jsonName := field.Desc.JSONName()
-		fieldDecoder, err := elmDecoder(field)
-		if err != nil {
-			g.gen.Error(err)
-			return
-		}
-		f.P("        |> Pipeline.required \"", jsonName, "\" ", fieldDecoder)
-	}
-	f.P("")
-}
-
-func (g *Generator) genEncoder(f *protogen.GeneratedFile, msg *protogen.Message) {
-	messageName := msg.GoIdent.GoName
-	encoderName := strings.ToLower(messageName[:1]) + messageName[1:] + "Encoder"
-	instanceName := strings.ToLower(messageName[:1]) + messageName[1:]
-
-	f.P(encoderName, " : ", messageName, " -> Encode.Value")
-	f.P(encoderName, " ", instanceName, " =")
-	f.P("    Encode.object")
-	f.P("        [ ")
-
-	for i, field := range msg.Fields {
-		fieldName := camelCase(string(field.Desc.Name()))
-		jsonName := field.Desc.JSONName()
-		fieldEncoder, err := elmEncoder(field, instanceName+"."+fieldName)
-		if err != nil {
-			g.gen.Error(err)
-			return
-		}
-
-		separator := ","
-		if i == len(msg.Fields)-1 {
-			separator = ""
-		}
-		f.P("            (\"", jsonName, "\", ", fieldEncoder, ")", separator)
-	}
-
-	f.P("        ]")
-	f.P("")
-}
-
 func elmType(field *protogen.Field) (string, error) {
 	var t string
 	switch field.Desc.Kind() {
@@ -167,57 +94,25 @@ func elmType(field *protogen.Field) (string, error) {
 	return t, nil
 }
 
-func elmDecoder(field *protogen.Field) (string, error) {
-	var d string
-	switch field.Desc.Kind() {
-	case protoreflect.StringKind:
-		d = "Decode.string"
-	case protoreflect.Int32Kind, protoreflect.Int64Kind, protoreflect.Sint32Kind, protoreflect.Sint64Kind, protoreflect.Uint32Kind, protoreflect.Uint64Kind, protoreflect.Fixed32Kind, protoreflect.Fixed64Kind, protoreflect.Sfixed32Kind, protoreflect.Sfixed64Kind:
-		d = "Decode.int"
-	case protoreflect.FloatKind, protoreflect.DoubleKind:
-		d = "Decode.float"
-	case protoreflect.BoolKind:
-		d = "Decode.bool"
-	case protoreflect.MessageKind:
-		messageName := field.Message.GoIdent.GoName
-		d = strings.ToLower(messageName[:1]) + messageName[1:] + "Decoder"
-	default:
-		return "", fmt.Errorf("unknown decoder for field %s: %s", field.Desc.Name(), field.Desc.Kind().String())
-	}
+func (g *Generator) genMessage(f *protogen.GeneratedFile, msg *protogen.Message) {
+	messageName := msg.GoIdent.GoName
+	f.P("type alias ", messageName, " =")
+	f.P("    { ")
 
-	if field.Desc.IsList() {
-		return "(Decode.list " + d + ")", nil
-	}
-	return d, nil
-}
-
-func elmEncoder(field *protogen.Field, fieldAccessor string) (string, error) {
-	var e string
-	switch field.Desc.Kind() {
-	case protoreflect.StringKind:
-		e = "Encode.string"
-	case protoreflect.Int32Kind, protoreflect.Int64Kind, protoreflect.Sint32Kind, protoreflect.Sint64Kind, protoreflect.Uint32Kind, protoreflect.Uint64Kind, protoreflect.Fixed32Kind, protoreflect.Fixed64Kind, protoreflect.Sfixed32Kind, protoreflect.Sfixed64Kind:
-		e = "Encode.int"
-	case protoreflect.FloatKind, protoreflect.DoubleKind:
-		e = "Encode.float"
-	case protoreflect.BoolKind:
-		e = "Encode.bool"
-	case protoreflect.MessageKind:
-		messageName := field.Message.GoIdent.GoName
-		e = strings.ToLower(messageName[:1]) + messageName[1:] + "Encoder"
-	default:
-		return "", fmt.Errorf("unknown encoder for field %s: %s", field.Desc.Name(), field.Desc.Kind().String())
-	}
-
-	if field.Desc.IsList() {
-		// The encoder function for the inner type doesn't take an argument, so we need to handle it slightly differently.
-		encoderName := e
-		if !strings.HasSuffix(e, "Encoder") {
-			// For primitive types, the function name is just the type (e.g., Encode.string)
-			// For message types, it's the function name we constructed (e.g., userEncoder)
-			encoderName = e
+	for i, field := range msg.Fields {
+		fieldName := camelCase(string(field.Desc.Name()))
+		fieldType, err := elmType(field)
+		if err != nil {
+			g.gen.Error(err)
+			return
 		}
-		return "(Encode.list " + encoderName + " " + fieldAccessor + ")", nil
+
+		separator := ","
+		if i == len(msg.Fields)-1 {
+			separator = ""
+		}
+		f.P("    ", fieldName, " : ", fieldType, separator)
 	}
-	return e + " " + fieldAccessor, nil
+	f.P("    }")
+	f.P("")
 }
