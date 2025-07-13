@@ -34,6 +34,40 @@ func upperCamelCase(s string) string {
 	return strings.Join(parts, "")
 }
 
+func (g *Generator) genLib(f *protogen.GeneratedFile) {
+	f.P(`base64error : BDecode.Error -> Decode.Decoder a
+base64error err =
+    case err of
+        BDecode.ValidationError ->
+            Decode.fail "base64 validation error"
+
+        BDecode.InvalidByteSequence ->
+            Decode.fail "base64 invalid byte sequence"
+
+
+result : (error -> a) -> (value -> a) -> Result error value -> a
+result errf f r =
+    case r of
+        Ok v ->
+            f v
+
+        Err err ->
+            errf err
+
+
+decodeBytes : Decode.Decoder Bytes.Bytes
+decodeBytes =
+    Decode.string
+        |> Decode.andThen
+            (BDecode.decode BDecode.bytes >> result base64error Decode.succeed)
+
+
+encodeBytes : Bytes.Bytes -> Encode.Value
+encodeBytes =
+    Encode.string << BEncode.encode << BEncode.bytes
+`)
+}
+
 func (g *Generator) GenerateFile(file *protogen.File) *protogen.GeneratedFile {
 	protoPath := file.Desc.Path()
 	path := strings.TrimSuffix(protoPath, ".proto")
@@ -57,8 +91,14 @@ func (g *Generator) GenerateFile(file *protogen.File) *protogen.GeneratedFile {
 
 	f.P("module ", moduleName, " exposing (..)")
 	f.P("")
+	f.P("import Base64.Decode as BDecode")
+	f.P("import Base64.Encode as BEncode")
+	f.P("import Bytes")
 	f.P("import Json.Decode as Decode")
 	f.P("import Json.Encode as Encode")
+	f.P("")
+
+	g.genLib(f)
 	f.P("")
 
 	for _, msg := range file.Messages {
@@ -81,6 +121,8 @@ func elmType(field *protogen.Field) (string, error) {
 		t = "Float"
 	case protoreflect.BoolKind:
 		t = "Bool"
+	case protoreflect.BytesKind:
+		t = "Bytes.Bytes"
 	case protoreflect.MessageKind:
 		t = field.Message.GoIdent.GoName
 	default:

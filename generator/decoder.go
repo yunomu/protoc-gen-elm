@@ -19,6 +19,8 @@ func elmDecoder(field *protogen.Field) (string, error) {
 		d = "Decode.float"
 	case protoreflect.BoolKind:
 		d = "Decode.bool"
+	case protoreflect.BytesKind:
+		d = "decodeBytes"
 	case protoreflect.MessageKind:
 		messageName := field.Message.GoIdent.GoName
 		d = strings.ToLower(messageName[:1]) + messageName[1:] + "Decoder"

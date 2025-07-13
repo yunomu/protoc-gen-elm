@@ -5,21 +5,58 @@
 
 module Test exposing (..)
 
+import Base64.Decode as BDecode
+import Base64.Encode as BEncode
+import Bytes
 import Json.Decode as Decode
 import Json.Encode as Encode
+
+base64error : BDecode.Error -> Decode.Decoder a
+base64error err =
+    case err of
+        BDecode.ValidationError ->
+            Decode.fail "base64 validation error"
+
+        BDecode.InvalidByteSequence ->
+            Decode.fail "base64 invalid byte sequence"
+
+
+result : (error -> a) -> (value -> a) -> Result error value -> a
+result errf f r =
+    case r of
+        Ok v ->
+            f v
+
+        Err err ->
+            errf err
+
+
+decodeBytes : Decode.Decoder Bytes.Bytes
+decodeBytes =
+    Decode.string
+        |> Decode.andThen
+            (BDecode.decode BDecode.bytes >> result base64error Decode.succeed)
+
+
+encodeBytes : Bytes.Bytes -> Encode.Value
+encodeBytes =
+    Encode.string << BEncode.encode << BEncode.bytes
+
 
 type alias User =
     { userId : String
     , userName : String
     , age : Int
+    , blob : Bytes.Bytes
     }
 
 userDecoder : Decode.Decoder User
 userDecoder =
-    Decode.map3 User
+    Decode.map4 User
         (Decode.field "userId" Decode.string)
         (Decode.field "userName" Decode.string)
         (Decode.field "age" Decode.int)
+        (Decode.field "blob" decodeBytes)
 
 userEncoder : User -> Encode.Value
 userEncoder user =
@@ -27,6 +64,7 @@ userEncoder user =
         [ ("userId", Encode.string user.userId)
         , ("userName", Encode.string user.userName)
         , ("age", Encode.int user.age)
+        , ("blob", encodeBytes user.blob)
         ]
 
 type alias UserList =

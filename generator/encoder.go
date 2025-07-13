@@ -19,6 +19,8 @@ func elmEncoder(field *protogen.Field, fieldAccessor string) (string, error) {
 		e = "Encode.float"
 	case protoreflect.BoolKind:
 		e = "Encode.bool"
+	case protoreflect.BytesKind:
+		e = "encodeBytes"
 	case protoreflect.MessageKind:
 		messageName := field.Message.GoIdent.GoName
 		e = strings.ToLower(messageName[:1]) + messageName[1:] + "Encoder"
