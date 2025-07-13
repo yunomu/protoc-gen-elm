@@ -4,8 +4,8 @@
 -- Source: test.proto
 
 module Test exposing
-    ( User(..)
-    , UserList(..)
+    ( User
+    , UserList
     , userDecoder
     , userEncoder
     , userListDecoder

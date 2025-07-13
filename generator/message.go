@@ -57,5 +57,5 @@ func (g *Generator) genMessage(f *GeneratedFile, msg *protogen.Message) {
 	}
 	f.P("    }")
 
-	f.Exposing(messageName + "(..)")
+	f.Exposing(messageName)
 }

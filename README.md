@@ -80,7 +80,7 @@ To generate the Elm code for this file, run the following command:
 protoc --plugin=protoc-gen-elm --elm_out=. testdata/test.proto
 ```
 
-This will generate a new file at `Test.elm` with the following content, which matches `testdata/Test.elm.golden`:
+This will generate a new file at `Test.elm`:
 
 ```elm
 -- DO NOT EDIT
@@ -89,8 +89,8 @@ This will generate a new file at `Test.elm` with the following content, which ma
 -- Source: test.proto
 
 module Test exposing
-    ( User(..)
-    , UserList(..)
+    ( User
+    , UserList
     , userDecoder
     , userEncoder
     , userListDecoder
