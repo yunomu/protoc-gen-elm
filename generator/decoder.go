@@ -34,7 +34,7 @@ func elmDecoder(field *protogen.Field) (string, error) {
 	return d, nil
 }
 
-func (g *Generator) genDecoder(f *protogen.GeneratedFile, msg *protogen.Message) {
+func (g *Generator) genDecoder(f *GeneratedFile, msg *protogen.Message) {
 	messageName := msg.GoIdent.GoName
 	decoderName := strings.ToLower(messageName[:1]) + messageName[1:] + "Decoder"
 
@@ -63,5 +63,6 @@ func (g *Generator) genDecoder(f *protogen.GeneratedFile, msg *protogen.Message)
 		}
 		f.P("        (Decode.field \"", jsonName, "\" ", fieldDecoder, ")")
 	}
-	f.P("")
+
+	f.Exposing(decoderName)
 }

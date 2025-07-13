@@ -41,7 +41,7 @@ func elmEncoder(field *protogen.Field, fieldAccessor string) (string, error) {
 	return e + " " + fieldAccessor, nil
 }
 
-func (g *Generator) genEncoder(f *protogen.GeneratedFile, msg *protogen.Message) {
+func (g *Generator) genEncoder(f *GeneratedFile, msg *protogen.Message) {
 	messageName := msg.GoIdent.GoName
 	encoderName := strings.ToLower(messageName[:1]) + messageName[1:] + "Encoder"
 	instanceName := strings.ToLower(messageName[:1]) + messageName[1:]
@@ -63,7 +63,7 @@ func (g *Generator) genEncoder(f *protogen.GeneratedFile, msg *protogen.Message)
 		f.P("        ", separator, " (\"", jsonName, "\", ", fieldEncoder, ")")
 		separator = ","
 	}
-
 	f.P("        ]")
-	f.P("")
+
+	f.Exposing(encoderName)
 }
