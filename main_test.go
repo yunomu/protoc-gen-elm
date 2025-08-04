@@ -50,6 +50,9 @@ func TestGolden(t *testing.T) {
 	}
 
 	if !bytes.Equal(generatedBytes, goldenBytes) {
-		t.Errorf(`Generated file does not match golden file.\nGenerated:\n%s\nGolden:\n%s`, string(generatedBytes), string(goldenBytes))
+		cmd := exec.Command("diff", "-u", goldenFile, generatedFile)
+		diff, _ := cmd.CombinedOutput()
+		t.Errorf(`Generated file does not match golden file. Diff:
+%s`, string(diff))
 	}
 }
