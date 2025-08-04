@@ -7,12 +7,28 @@ import (
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
-type Generator struct {
-	gen *protogen.Plugin
+type option func(*Generator)
+
+func WithGolden(golden bool) option {
+	return func(g *Generator) {
+		g.golden = golden
+	}
 }
 
-func New(gen *protogen.Plugin) *Generator {
-	return &Generator{gen: gen}
+type Generator struct {
+	gen    *protogen.Plugin
+	golden bool
+
+	hasOptional bool
+	hasBytes    bool
+}
+
+func New(gen *protogen.Plugin, opts ...option) *Generator {
+	g := &Generator{gen: gen}
+	for _, opt := range opts {
+		opt(g)
+	}
+	return g
 }
 
 // camelCase converts a snake_case string to camelCase.
@@ -33,7 +49,7 @@ func upperCamelCase(s string) string {
 	return strings.Join(parts, "")
 }
 
-func (g *Generator) genLib(f *GeneratedFile) {
+func (g *Generator) genBytesLib(f *GeneratedFile) {
 	f.Libs(`base64error : BDecode.Error -> Decode.Decoder a
 base64error err =
     case err of
@@ -64,6 +80,12 @@ decodeBytes =
 encodeBytes : Bytes.Bytes -> Encode.Value
 encodeBytes =
     Encode.string << BEncode.encode << BEncode.bytes`)
+}
+
+func (g *Generator) genOptionalLib(f *GeneratedFile) {
+	f.Libs(`nullable : (a -> Encode.Value) -> Maybe a -> Encode.Value
+nullable f =
+    Maybe.withDefault Encode.null << Maybe.map f`)
 }
 
 type GeneratedFile struct {
@@ -121,9 +143,9 @@ func (g *GeneratedFile) Output(f *protogen.GeneratedFile) {
 	}
 
 	if len(g.libs) != 0 {
-		f.P("")
-		f.P("")
 		for _, v := range g.libs {
+			f.P("")
+			f.P("")
 			f.P(v)
 		}
 	}
@@ -142,6 +164,9 @@ func (g *Generator) GenerateFile(file *protogen.File) *protogen.GeneratedFile {
 		pathParts[i] = upperCamelCase(part)
 	}
 	filename := strings.Join(pathParts, "/") + ".elm"
+	if g.golden {
+		filename += ".golden"
+	}
 
 	f := &GeneratedFile{}
 
@@ -151,6 +176,7 @@ func (g *Generator) GenerateFile(file *protogen.File) *protogen.GeneratedFile {
 	f.Header("-- Source: ", file.Desc.Path())
 
 	moduleName := strings.ReplaceAll(filename, "/", ".")
+	moduleName = strings.TrimSuffix(moduleName, ".elm.golden")
 	moduleName = strings.TrimSuffix(moduleName, ".elm")
 
 	f.Module(moduleName)
@@ -168,6 +194,18 @@ func (g *Generator) GenerateFile(file *protogen.File) *protogen.GeneratedFile {
 		f.P("")
 		f.P("")
 		g.genEncoder(f, msg)
+	}
+
+	if g.hasBytes {
+		f.Import("Bytes")
+		f.Import("Base64.Decode as BDecode")
+		f.Import("Base64.Encode as BEncode")
+		g.genBytesLib(f)
+	}
+
+	if g.hasOptional {
+		f.Import("Maybe")
+		g.genOptionalLib(f)
 	}
 
 	genFile := g.gen.NewGeneratedFile(filename, file.GoImportPath)

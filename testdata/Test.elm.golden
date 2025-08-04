@@ -17,6 +17,7 @@ import Base64.Encode as BEncode
 import Bytes
 import Json.Decode as Decode
 import Json.Encode as Encode
+import Maybe
 
 
 base64error : BDecode.Error -> Decode.Decoder a
@@ -51,10 +52,15 @@ encodeBytes =
     Encode.string << BEncode.encode << BEncode.bytes
 
 
+nullable : (a -> Encode.Value) -> Maybe a -> Encode.Value
+nullable f =
+    Maybe.withDefault Encode.null << Maybe.map f
+
+
 type alias User =
     { userId : String
     , userName : String
-    , age : Int
+    , age : Maybe Int
     , blob : Bytes.Bytes
     }
 
@@ -64,7 +70,7 @@ userDecoder =
     Decode.map4 User
         (Decode.field "userId" Decode.string)
         (Decode.field "userName" Decode.string)
-        (Decode.field "age" Decode.int)
+        (Decode.field "age" <| Decode.maybe Decode.int)
         (Decode.field "blob" decodeBytes)
 
 
@@ -73,13 +79,13 @@ userEncoder user =
     Encode.object
         [ ("userId", Encode.string user.userId)
         , ("userName", Encode.string user.userName)
-        , ("age", Encode.int user.age)
+        , ("age", (nullable Encode.int user.age))
         , ("blob", encodeBytes user.blob)
         ]
 
 
 type alias UserList =
-    { users : (List User)
+    { users : List User
     }
 
 

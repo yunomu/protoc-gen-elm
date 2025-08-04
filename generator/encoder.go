@@ -38,6 +38,11 @@ func elmEncoder(field *protogen.Field, fieldAccessor string) (string, error) {
 		}
 		return "(Encode.list " + encoderName + " " + fieldAccessor + ")", nil
 	}
+
+	if field.Desc.HasOptionalKeyword() {
+		return "(nullable " + e + " " + fieldAccessor + ")", nil
+	}
+
 	return e + " " + fieldAccessor, nil
 }
 

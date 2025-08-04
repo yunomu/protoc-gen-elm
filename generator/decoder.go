@@ -31,6 +31,11 @@ func elmDecoder(field *protogen.Field) (string, error) {
 	if field.Desc.IsList() {
 		return "(Decode.list " + d + ")", nil
 	}
+
+	if field.Desc.HasOptionalKeyword() {
+		return "<| Decode.maybe " + d, nil
+	}
+
 	return d, nil
 }
 

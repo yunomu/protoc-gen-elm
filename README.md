@@ -164,7 +164,7 @@ userEncoder user =
 
 
 type alias UserList =
-    { users : (List User)
+    { users : List User
     }
 
 

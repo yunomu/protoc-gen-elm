@@ -27,8 +27,13 @@ func elmType(field *protogen.Field) (string, error) {
 	}
 
 	if field.Desc.IsList() {
-		return "(List " + t + ")", nil
+		return "List " + t, nil
 	}
+
+	if field.Desc.HasOptionalKeyword() {
+		return "Maybe " + t, nil
+	}
+
 	return t, nil
 }
 
@@ -45,11 +50,12 @@ func (g *Generator) genMessage(f *GeneratedFile, msg *protogen.Message) {
 			return
 		}
 
-		if fieldType == "Bytes.Bytes" {
-			f.Import("Bytes")
-			f.Import("Base64.Decode as BDecode")
-			f.Import("Base64.Encode as BEncode")
-			g.genLib(f)
+		if fieldType == "Bytes.Bytes" || fieldType == "(Maybe Bytes.Bytes)" {
+			g.hasBytes = true
+		}
+
+		if field.Desc.HasOptionalKeyword() {
+			g.hasOptional = true
 		}
 
 		f.P("    ", separator, " ", fieldName, " : ", fieldType)
