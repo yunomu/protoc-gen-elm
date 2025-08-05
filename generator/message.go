@@ -12,8 +12,10 @@ func elmType(field *protogen.Field) (string, error) {
 	switch field.Desc.Kind() {
 	case protoreflect.StringKind:
 		t = "String"
-	case protoreflect.Int32Kind, protoreflect.Int64Kind, protoreflect.Sint32Kind, protoreflect.Sint64Kind, protoreflect.Uint32Kind, protoreflect.Uint64Kind, protoreflect.Fixed32Kind, protoreflect.Fixed64Kind, protoreflect.Sfixed32Kind, protoreflect.Sfixed64Kind:
+	case protoreflect.Int32Kind, protoreflect.Sint32Kind, protoreflect.Uint32Kind, protoreflect.Fixed32Kind, protoreflect.Sfixed32Kind:
 		t = "Int"
+	case protoreflect.Int64Kind, protoreflect.Sint64Kind, protoreflect.Uint64Kind, protoreflect.Fixed64Kind, protoreflect.Sfixed64Kind:
+		t = "String"
 	case protoreflect.FloatKind, protoreflect.DoubleKind:
 		t = "Float"
 	case protoreflect.BoolKind:

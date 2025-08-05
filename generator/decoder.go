@@ -13,8 +13,10 @@ func elmDecoder(field *protogen.Field) (string, error) {
 	switch field.Desc.Kind() {
 	case protoreflect.StringKind:
 		d = "Decode.string"
-	case protoreflect.Int32Kind, protoreflect.Int64Kind, protoreflect.Sint32Kind, protoreflect.Sint64Kind, protoreflect.Uint32Kind, protoreflect.Uint64Kind, protoreflect.Fixed32Kind, protoreflect.Fixed64Kind, protoreflect.Sfixed32Kind, protoreflect.Sfixed64Kind:
+	case protoreflect.Int32Kind, protoreflect.Sint32Kind, protoreflect.Uint32Kind, protoreflect.Fixed32Kind, protoreflect.Sfixed32Kind:
 		d = "Decode.int"
+	case protoreflect.Int64Kind, protoreflect.Sint64Kind, protoreflect.Uint64Kind, protoreflect.Fixed64Kind, protoreflect.Sfixed64Kind:
+		d = "Decode.string"
 	case protoreflect.FloatKind, protoreflect.DoubleKind:
 		d = "Decode.float"
 	case protoreflect.BoolKind:
@@ -30,10 +32,6 @@ func elmDecoder(field *protogen.Field) (string, error) {
 
 	if field.Desc.IsList() {
 		return "(Decode.list " + d + ")", nil
-	}
-
-	if field.Desc.HasOptionalKeyword() {
-		return "<| Decode.maybe " + d, nil
 	}
 
 	return d, nil
@@ -66,7 +64,11 @@ func (g *Generator) genDecoder(f *GeneratedFile, msg *protogen.Message) {
 			g.gen.Error(err)
 			return
 		}
-		f.P("        (Decode.field \"", jsonName, "\" ", fieldDecoder, ")")
+		labelDecoder := "Decode.field"
+		if field.Desc.HasOptionalKeyword() {
+			labelDecoder = "Decode.maybe <| Decode.field"
+		}
+		f.P("        (", labelDecoder, " \"", jsonName, "\" ", fieldDecoder, ")")
 	}
 
 	f.Exposing(decoderName)
